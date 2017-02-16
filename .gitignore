@@ -1,0 +1,5 @@
+system
+app/data/cache
+app/data/temp
+app/data/logs
+app/data/views
