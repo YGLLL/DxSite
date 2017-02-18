@@ -4,7 +4,7 @@ namespace cn\atd3;
 
 use db\Setting;
 
-class Mongci extends \suda\code\Application
+class Application extends \suda\code\Application
 {
     public static $request;
     public static $page;
@@ -15,7 +15,7 @@ class Mongci extends \suda\code\Application
         Session::start();
         self::$request=new Request();
         self::checkClient(); // 设置客户端验证
-        Hook::listen('system:shutdown', 'Mongci::shutdown');
+        Hook::listen('system:shutdown', 'Application::shutdown');
         Plugin::boot();
     }
     public static function refreshClient()

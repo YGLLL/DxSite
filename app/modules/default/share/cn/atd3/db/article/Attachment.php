@@ -1,6 +1,6 @@
 <?php
 
-namespace db\article;
+namespace cn\atd3\db\article;
 
 use Query;
 

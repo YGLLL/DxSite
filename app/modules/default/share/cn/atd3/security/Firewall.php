@@ -1,5 +1,5 @@
 <?php
-namespace security;
+namespace cn\atd3\security;
 
 use Request;
 

@@ -4,24 +4,24 @@ namespace cn\atd3;
 use cn\atd3\db\Setting;
 use suda\core\Storage;
 use suda\core\Request;
+use suda\core\Hook;
 
 class Application extends \suda\core\Application
 {
     public static $request;
     public static $page;
     public static $session;
-    function __construct($app){
-        parent::__construct($app);
-        self::init();
-    }
-    public static function init()
+
+    public function onRequest(Request $request)
     {
         Session::start();
         self::$request=Request::getInstance();
         self::checkClient(); // 设置客户端验证
-        Hook::listen('system:shutdown', 'Mongci::shutdown');
         Plugin::boot();
+        return true;
     }
+
+
     public static function refreshClient()
     {
         if ($get=conf('client')) {
@@ -91,7 +91,7 @@ class Application extends \suda\core\Application
         self::setSeting('client_id', conf('client.id',1));
     }
 
-    public static function shutdown()
+    public static function onShutdown()
     {
         Cache::gc();
     }

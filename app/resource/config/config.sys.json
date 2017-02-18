@@ -10,5 +10,9 @@
         "charset":"utf8",
         "host":"localhost"
     },
-    "non-static":"php"
+    "non-static":"php",
+    "client":{
+        "id":2,
+        "token":"751596d267bbe9d2590a9bb296c7d4ba"
+    }
 }

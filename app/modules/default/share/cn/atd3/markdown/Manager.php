@@ -1,6 +1,6 @@
 <?php
 
-namespace markdown;
+namespace cn\atd3\markdown;
 
 class Manager
 {

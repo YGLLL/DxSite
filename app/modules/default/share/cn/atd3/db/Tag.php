@@ -1,6 +1,6 @@
 <?php
 
-namespace db;
+namespace cn\atd3\db;
 
 use Query;
 

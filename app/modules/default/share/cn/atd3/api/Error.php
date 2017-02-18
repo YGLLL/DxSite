@@ -1,7 +1,7 @@
 <?php
-namespace api;
+namespace cn\atd3\api;
 
-class Error extends \base\Value
+class Error extends \suda\tool\Value
 {
     public function __construct(string $name, string $message)
     {

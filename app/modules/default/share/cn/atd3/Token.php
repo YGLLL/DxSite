@@ -3,7 +3,7 @@ namespace cn\atd3;
 
 use suda\core\Request;
 use suda\core\Cookie;
-
+use suda\core\Hook;
 
 class Token
 {
@@ -52,7 +52,7 @@ class Token
 
     public static function generate(string &$output, string $type)
     {
-        if ($type==='json' && $values=\base\Json::decode($output, true)) {
+        if ($type==='json' && $values=\suda\tool\Json::decode($output, true)) {
             foreach (self::$values as $name=>$value) {
                 $values['token'][$name]=$value;
             }

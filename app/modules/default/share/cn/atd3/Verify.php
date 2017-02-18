@@ -1,5 +1,5 @@
 <?php
-
+namespace cn\atd3;
 class Verify
 {
     const TYPE_EN=0;

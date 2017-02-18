@@ -1,5 +1,5 @@
 <?php
-
+namespace cn\atd3;
 class MdArticle
 {
     // 待上传的图片

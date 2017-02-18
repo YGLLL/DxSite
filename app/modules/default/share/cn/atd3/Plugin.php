@@ -1,4 +1,10 @@
 <?php
+namespace cn\atd3;
+
+use cn\atd3\db\Setting;
+use suda\core\Storage;
+use suda\core\Request;
+use suda\core\Hook;
 
 interface PlugInterface
 {
@@ -17,7 +23,7 @@ class Plugin
     public static function boot()
     {
         spl_autoload_register('Plugin::plugautoload');
-        self::$mounted=Mongci::getSetting('mounted_plugin', []);
+        self::$mounted=Application::getSetting('mounted_plugin', []);
         foreach (self::$mounted as $plugin) {
             $name='Plugin\\'.$plugin;
             // 命名空间

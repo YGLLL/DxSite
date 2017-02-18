@@ -1,4 +1,5 @@
 <?php
+namespace cn\atd3;
 /**
 * 网站的用户操作接口
 */
@@ -7,7 +8,7 @@ class User
     public static function signUp(string $name, string $email, string $passwd)
     {
         // 获取网站操作权限
-        $client=Mongci::getClient();
+        $client=Application::getClient();
         // 生成6位邮箱验证码
         $code=substr(base64_encode(md5('5246-687261-5852-6C'+time())), 0, 6);
         if ($get=db\User::signUp($name, $email, $passwd, $client['id'], $client['token'], $code)) {
@@ -20,7 +21,7 @@ class User
     public static function signIn(string $name, string $passwd, bool $remember=false)
     {
         // 获取网站操作权限
-        $client=Mongci::getClient();
+        $client=Application::getClient();
         if ($get=db\User::signIn($name, $passwd, $client['id'], $client['token'])) {
             Token::set('user', base64_encode($get['id'].'.'.$get['token'].'.'.$get['value']), 3600)->session(!$remember)->httpOnly();
             return $get['user_id'];
@@ -63,7 +64,7 @@ class User
                     return intval($uid);
                 } elseif (isset($match[3])) {
                     // 获取网站操作权限
-                    $client=Mongci::getClient();
+                    $client=Application::getClient();
                     // 一次心跳
                     if ($get=db\Token::refresh(intval($match[1]), intval($client['id']), $client['token'], $match[3])) {
                         Token::set('user', base64_encode($get['id'].'.'.$get['token'].'.'.$get['value']), 3600)->httpOnly();
@@ -97,7 +98,7 @@ class User
         if ($id) {
             $code=substr(base64_encode(md5('5246-687261-5852-6C'+time())), 0, 6);
             // 获取网站操作权限
-            $client=Mongci::getClient();
+            $client=Application::getClient();
             if ($token=db\Token::verifyCreate($id, $client['id'], $client['token'], $code)) {
                 return $token;
             }
