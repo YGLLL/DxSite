@@ -1,5 +1,5 @@
 <?php
-namespace cn\atd3\response;
+namespace cn\atd3\response\api;
 
 // use namespace
 use suda\core\Request;
@@ -11,14 +11,14 @@ use suda\core\Cookie;
 use suda\core\Session;
 
 /**
-* visit url / as all method to run this class.
-* you call use _I('default',Array) to create path.
-* @template: default:index.tpl.html
-* @name: default
-* @url: /
+* visit url /api/user as GET method to run this class.
+* you call use _I('user_api',Array) to create path.
+* @template: default:api/user.tpl.html
+* @name: user_api
+* @url: /api/user
 * @param: 
 */
-class Index extends \suda\core\Response
+class User extends \suda\core\Response
 {
     public function onRequest(Request $request)
     {
@@ -26,8 +26,8 @@ class Index extends \suda\core\Response
         ;
         // param values array
         $value=array();
-        // display template
-        $this->display('default:index', ['helloworld'=>'Hello,World!', 'value'=>$value]);
+        // display json code 
+        $this->json(['helloworld'=>'Hello,World!', 'value'=>$value]);
     }
 
     // pretest router 
