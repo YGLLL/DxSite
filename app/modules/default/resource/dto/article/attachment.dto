@@ -1,0 +1,5 @@
+; 附件
+id bigint(20) primary auto comment="文件ID"
+article bigint(20) key comment="文章ID"
+data bigint(20) key comment="数据"
+type bigint(1)  key comment="类型"

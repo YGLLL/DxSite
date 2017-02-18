@@ -1,0 +1,4 @@
+; JSON 验证辅助表
+id bigint(20)  auto primary comment="请求ID"
+alive int(11) key comment="过期时间"
+data  varchar(255) comment="数据"
