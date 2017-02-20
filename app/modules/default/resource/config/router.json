@@ -1,1 +1,3 @@
-{"default":{"class":"cn\\atd3\\response\\Index","visit":"\/"},"user_api":{"class":"cn\\atd3\\response\\api\\User","visit":"\/api\/user[\/{method}]","method":["GET"]},"verify_code":{"class":"cn\\atd3\\response\\ImageVerify","visit":"\/verify-code","method":["GET"]}}
+{
+    "default":{"class":"cn\\atd3\\response\\Index","visit":"/"}
+}
