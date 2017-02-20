@@ -53,7 +53,7 @@ class VerifyImage
 
     public static function refresh()
     {
-        Session::set('human_varify', time());
+        Session::set('human_varify',null);
     }
 
     public function version()

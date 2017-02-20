@@ -12,10 +12,12 @@ class Session
     public static function start()
     {
         $path=DATA_DIR.'/session';
+        $id=md5(Request::signature().Request::get()->token);
+        // _D()->i('s:'.Request::signature().';id:'.$id.';token:'.Request::get()->token.';','Session');
         Storage::mkdirs($path);
-        session_id(md5(Request::signature().Request::get()->token));
+        session_id($id);
         session_save_path($path);
-        session_name(conf('session.name', 'token_session'));
+        session_name(conf('session.name', 'session'));
         session_cache_limiter(conf('session.limiter', 'private'));
         session_cache_expire(conf('session.expire',0));
         session_start();
@@ -45,5 +47,3 @@ class Session
         session_unset();
     }
 }
-
-Session::start();

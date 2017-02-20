@@ -13,6 +13,7 @@ use suda\core\Session;
 use cn\atd3\UserCenter;
 use cn\atd3\Api;
 use cn\atd3\ApiException;
+use cn\atd3\Token;
 use suda\tool\Value;
 
 /**
@@ -26,7 +27,7 @@ use suda\tool\Value;
 class User extends \suda\core\Response
 {
     protected $client;
-    protected $client_id;
+    protected $token;
     protected $uc;
     protected $request;
     public function onRequest(Request $request)
@@ -37,6 +38,8 @@ class User extends \suda\core\Response
             if (!$this->uc->checkClient($request->get()->client, $request->get()->token)) {
                 return $this->json(['error'=>'client is not available!']);
             }
+            $this->client=$request->get()->client;
+            $this->token=$request->get()->token;
         } else {
             return $this->json(['error'=>'no api client!']);
         }
@@ -52,7 +55,7 @@ class User extends \suda\core\Response
                 // 验证邮箱
                 case 'checkemail': Api::check($data, ['email']);return $this->json(['return'=>$this->uc->checkEmailExist($data->email)]);
                 // 注册
-                case 'signup':Api::check($data, ['email', 'name', 'passwd', 'code']);return self::signup($data->name, $data->email, $data->passwd, $data->code);
+                case 'signup':Api::check($data, ['email', 'name', 'passwd', 'code'=>['string', null]]); return $this->json(self::signup($data->name, $data->email, $data->passwd, $data->code));
                 // 默认输出
                 default:return $this->json(['default'=>'nothing', 'data'=>$data]);
             }
@@ -62,12 +65,29 @@ class User extends \suda\core\Response
             return $this->json([ 'Exception'=>$e->getMessage()]);
         }
     }
-    protected function signup($name, $email, $passwd, $data)
+
+    // 注册
+    protected function signup($name, $email, $passwd, $code)
     {
-        if (\cn\atd3\VerifyImage::checkCode($data)) {
-            return $this->json(['return'=>$this->uc->addUser($name, $email, $passwd, 0, $this->request->ip())]);
+        // 需要验证码却未设置
+        if (is_null($code) && Session::has('need_code')) {
+            return new ApiException('lackCodeError', 'You need send a  code');
+        }
+        if (!Session::has('need_code')) {
+            Session::set('need_code', true);
+            $id=$this->uc->addUser($name, $passwd, $email, 0, $this->request->ip());
+            $get=$this->uc->createToken($id,$this->client,$this->token, $this->request->ip(),'Code');
+            Token::set('user', base64_encode($get['id'].'.'.$get['token']));
+            return ['return'=> $id];
+        }
+        elseif(Session::has('need_code') && \cn\atd3\VerifyImage::checkCode($code)) {
+            $id=$this->uc->addUser($name, $passwd, $email, 0, $this->request->ip());
+            $get=$this->uc->createToken($id,$this->client,$this->token, $this->request->ip(),'Code');
+            Token::set('user', base64_encode($get['id'].'.'.$get['token']));
+            return ['return'=> $id];
         } else {
-            return$this->json(new ApiException('codeError', 'You send a error human code'));
+            Session::set('need_code', true);
+            return new ApiException('codeError', 'You send a error human code');
         }
     }
     // pretest router
