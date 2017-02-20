@@ -11,6 +11,9 @@ use suda\core\Cookie;
 use suda\core\Session;
 
 use cn\atd3\UserCenter;
+use cn\atd3\Api;
+use cn\atd3\ApiException;
+use suda\tool\Value;
 
 /**
 * visit url /api/user[/{action}] as all method to run this class.
@@ -22,31 +25,35 @@ use cn\atd3\UserCenter;
 */
 class User extends \suda\core\Response
 {
+    protected $client;
+    protected $client_id;
     public function onRequest(Request $request)
     {
+        $uc=new UserCenter;
+        if ($request->get()->client && $request->get()->token) {
+            if (!$uc->checkClient($request->get()->client, $request->get()->token)) {
+                return $this->json(['error'=>'client is not available!']);
+            }
+        } else {
+            return $this->json(['error'=>'no api client!']);
+        }
         // params if had
         $action=$request->get()->action;
-        
-        // var_dump($action,$request->get());
-        $uc=new UserCenter;
-        //$uc->addUser(time(),'PASSWORD_BCRYPT','dxkite2@email.com'.time(),0,$request->ip())
-        switch ($action) {
-            case 'checkname':
-                return $this->json([
-                    'add'=>$uc->addUser(time(),'PASSWORD_BCRYPT','dxkite2@email.com'.time(),0,$request->ip()),
-                    'return'=>$uc->checkNameExist($request->get()->name),
-                    'id2name'=>$uc->id2name([6,7,8,9,10]),
-                    'set'=>$uc->setUserPermission(10,['create']),
-                    'get'=>$uc->getUserPermission(10),
-                    // 'addClient'=>$uc->addClient(time(),'官方令牌'),
-                    'listClient'=>$uc->listClient(),
-                    'createToken'=>$uc->createToken(1,1,'c7b04d1534f1ed7bb9241cf5fe6ea11e',$request->ip()),
-                    ]
-                );
-                break;
-
-            default: // display json code
-                return $this->json(['helloworld'=>'Hello,World!']);
+        // param values array
+        $data=$request->isJson()?new Value($request->json()):($request->isPost()?$request->post():$request->get());
+       
+        try {
+            switch ($action) {
+                // 验证姓名
+                case 'checkname': Api::check($data, ['name']);return $this->json(['return'=>$uc->checkNameExist($data->name)]);
+                // 验证邮箱
+                case 'checkemail': Api::check($data, ['email']);return $this->json(['return'=>$uc->checkEmailExist($data->email)]);
+                
+                // 默认输出
+                default:return $this->json(['default'=>'nothing', 'data'=>$data]);
+            }
+        } catch (ApiException $e) {
+            return $this->json($e);
         }
     }
 
