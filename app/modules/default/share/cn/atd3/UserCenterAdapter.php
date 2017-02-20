@@ -14,8 +14,8 @@ interface UserCenterAdapter
     public static function checkNameFormat(string $name):bool;
     public static function checkEmailFormat(string $email):bool;
     public static function checkPassword(string $name, string $password):bool;
-    public static function checkEmailAvaiable(string $email):bool;
-    public static function setEmailAvailable(string $email, bool $available=true):bool;
+    public static function checkEmailAvailable(int $uid):bool;
+    public static function setEmailAvailable(array $uid, bool $available=true):bool;
 
     // 基本操作
     public static function addUser(string $name, string $password, string  $email, int $group, string $ip):int;
