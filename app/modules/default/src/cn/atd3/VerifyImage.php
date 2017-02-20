@@ -2,7 +2,7 @@
 namespace cn\atd3;
 
 use suda\core\Storage;
-use suda\core\Session;
+use cn\atd3\Session;
 
 class VerifyImage
 {

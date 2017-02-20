@@ -3,6 +3,7 @@ app/data/cache
 app/data/temp
 app/data/logs
 app/data/views
+app/data/session
 application
 app-old
 debug.log

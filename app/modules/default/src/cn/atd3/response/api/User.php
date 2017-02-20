@@ -27,11 +27,14 @@ class User extends \suda\core\Response
 {
     protected $client;
     protected $client_id;
+    protected $uc;
+    protected $request;
     public function onRequest(Request $request)
     {
-        $uc=new UserCenter;
+        $this->uc=new UserCenter;
+        $this->request=$request;
         if ($request->get()->client && $request->get()->token) {
-            if (!$uc->checkClient($request->get()->client, $request->get()->token)) {
+            if (!$this->uc->checkClient($request->get()->client, $request->get()->token)) {
                 return $this->json(['error'=>'client is not available!']);
             }
         } else {
@@ -39,24 +42,34 @@ class User extends \suda\core\Response
         }
         // params if had
         $action=$request->get()->action;
-        // param values array
-        $data=$request->isJson()?new Value($request->json()):($request->isPost()?$request->post():$request->get());
-       
+            
         try {
+            // param values array
+            $data=$request->isJson()?new Value($request->json()):($request->isPost()?$request->post():$request->get());
             switch ($action) {
                 // 验证姓名
-                case 'checkname': Api::check($data, ['name']);return $this->json(['return'=>$uc->checkNameExist($data->name)]);
+                case 'checkname': Api::check($data, ['name']);return $this->json(['return'=>$this->uc->checkNameExist($data->name)]);
                 // 验证邮箱
-                case 'checkemail': Api::check($data, ['email']);return $this->json(['return'=>$uc->checkEmailExist($data->email)]);
-                
+                case 'checkemail': Api::check($data, ['email']);return $this->json(['return'=>$this->uc->checkEmailExist($data->email)]);
+                // 注册
+                case 'signup':Api::check($data, ['email', 'name', 'passwd', 'code']);return self::signup($data->name, $data->email, $data->passwd, $data->code);
                 // 默认输出
                 default:return $this->json(['default'=>'nothing', 'data'=>$data]);
             }
         } catch (ApiException $e) {
             return $this->json($e);
+        } catch (\Exception $e) {
+            return $this->json([ 'Exception'=>$e->getMessage()]);
         }
     }
-
+    protected function signup($name, $email, $passwd, $data)
+    {
+        if (\cn\atd3\VerifyImage::checkCode($data)) {
+            return $this->json(['return'=>$this->uc->addUser($name, $email, $passwd, 0, $this->request->ip())]);
+        } else {
+            return$this->json(new ApiException('codeError', 'You send a error human code'));
+        }
+    }
     // pretest router
     public function onPreTest($router):bool
     {

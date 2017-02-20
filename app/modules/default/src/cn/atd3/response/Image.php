@@ -23,7 +23,8 @@ class Image extends \suda\core\Response
     public function onRequest(Request $request)
     {
         $this->type('png');
-        (new \cn\atd3\VerifyImage)->create(); 
+        $this->noCache();
+        (new \cn\atd3\VerifyImage)->create();
     }
 
     // pretest router 
