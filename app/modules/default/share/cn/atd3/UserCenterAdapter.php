@@ -37,9 +37,9 @@ interface UserCenterAdapter
     //-------------------
     //   分组操作
     //-------------------
-    public static function getGroupPermission(array $groups):array;
+    public static function getGroupPermission(int $groups):array;
     public static function setGroupPermission(array $groups, array $Permission):bool;
-    public static function addGroup(string $gname, string $comments, array $Permission):int;
+    public static function addGroup(string $gname,  array $Permission):int;
     public static function deleteGroup(array $groups):bool;
 
     public static function gid2name(array $ids):array;
@@ -50,4 +50,7 @@ interface UserCenterAdapter
     //------------------
     //  客户端分配操作
     //------------------
+
+    // public static function clientAvailable(int $id):bool;
+    public static function addClient(string  $name, string $description,array $auths=[],int $beat=60, int $alive=3600, int $state=1);
 }

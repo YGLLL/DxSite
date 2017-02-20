@@ -36,6 +36,11 @@ class User extends \suda\core\Response
                     'add'=>$uc->addUser(time(),'PASSWORD_BCRYPT','dxkite2@email.com'.time(),0,$request->ip()),
                     'return'=>$uc->checkNameExist($request->get()->name),
                     'id2name'=>$uc->id2name([6,7,8,9,10]),
+                    'set'=>$uc->setUserPermission(10,['create']),
+                    'get'=>$uc->getUserPermission(10),
+                    'addClient'=>$uc->addClient(time(),'官方令牌'),
+                    'listClient'=>$uc->listClient(),
+                    
                     ]
                 );
                 break;

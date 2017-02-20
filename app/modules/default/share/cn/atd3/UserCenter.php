@@ -11,7 +11,8 @@ class UserCenter implements \cn\atd3\UserCenterAdapter
 {
     const REG_EMAIL='/^([a-zA-Z0-9_\.\-\+])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/';
     const REG_NAME='/^[\w\x{4e00}-\x{9aff}]{4,13}$/u';
-
+    const CLIENT_ACTIVE=1;//可活动的
+    const CLIENT_FREEZE=0;//禁用的
      //-------------------
     //   用户基本操作
     //-------------------
@@ -90,48 +91,56 @@ class UserCenter implements \cn\atd3\UserCenterAdapter
 
     public static function getUser(int $page, int $counts):array
     {
-        return ($fetch=Query::where('user', ['id', 'name', 'email', 'available', 'ip'], '1', [], [$page, $count])->fetchAll())?$fetch:[];;
+        return ($fetch=Query::where('user', ['id', 'name', 'email', 'available', 'ip'], '1', [], [$page, $count])->fetchAll())?$fetch:[];
+        ;
     }
 
     public static function getUserById(array $uid):array
     {
-        return ($fetch=Query::where('user', ['id', 'name', 'email', 'available', 'ip'], ['id'=>$uidarray])->fetchAll())?$fetch:[];;
+        return ($fetch=Query::where('user', ['id', 'name', 'email', 'available', 'ip'], ['id'=>$uidarray])->fetchAll())?$fetch:[];
+        ;
     }
 
     public static function getUserByName(array $names):array
     {
-        return ($fetch=Query::where('user', ['id', 'name', 'email', 'available', 'ip'], ['name'=>$names])->fetchAll())?$fetch:[];;
+        return ($fetch=Query::where('user', ['id', 'name', 'email', 'available', 'ip'], ['name'=>$names])->fetchAll())?$fetch:[];
+        ;
     }
 
     public static function getUserByEmail(array $emails):array
     {
-        return ($fetch=Query::where('user', ['id', 'name', 'email', 'available', 'ip'], ['email'=>$emails])->fetchAll())?$fetch:[];;
+        return ($fetch=Query::where('user', ['id', 'name', 'email', 'available', 'ip'], ['email'=>$emails])->fetchAll())?$fetch:[];
+        ;
     }
 
     // 数据转换
     public static function id2name(array $ids):array
     {
-        return ($fetch=Query::where('user', ['id', 'name'], ['id'=>$ids])->fetchAll())?$fetch:[];;
+        return ($fetch=Query::where('user', ['id', 'name'], ['id'=>$ids])->fetchAll())?$fetch:[];
+        ;
     }
     public static function name2id(array $names):array
     {
-        return ($fetch=Query::where('user', ['id', 'name'], ['names'=>$names])->fetchAll())?$fetch:[];;
+        return ($fetch=Query::where('user', ['id', 'name'], ['names'=>$names])->fetchAll())?$fetch:[];
+        ;
     }
 
     public static function email2id(array $email):array
     {
-        return ($fetch=Query::where('user', [ 'id', 'email'], ['email'=>$email])->fetchAll())?$fetch:[];;
+        return ($fetch=Query::where('user', [ 'id', 'email'], ['email'=>$email])->fetchAll())?$fetch:[];
+        ;
     }
     public static function id2email(array $ids):array
     {
-        return ($fetch=Query::where('user', ['id', 'email'], ['id'=>$ids])->fetchAll())?$fetch:[];;
+        return ($fetch=Query::where('user', ['id', 'email'], ['id'=>$ids])->fetchAll())?$fetch:[];
+        ;
     }
 
     // 权限操作
     public static function getUserPermission(int $uid):array
     {
         // 获取权限
-        if ($fetch=Query::select('user_group', 'auths', ' JOIN `#{user}` ON `#{user}`.`id` = :id  WHERE `user` = :id  or `#{user_group}`.`id` =`#{user}`.`group` LIMIT 1;', ['id'=>$id])->fetch()) {
+        if ($fetch=Query::select('user_group', 'auths', ' JOIN `#{user}` ON `#{user}`.`id` = :id  WHERE `user` = :id  or `#{user_group}`.`id` =`#{user}`.`group` LIMIT 1;', ['id'=>$uid])->fetch()) {
             return ($auths=json_decode($fetch['auths']))?$auths:[];
         }
         return [];
@@ -141,15 +150,16 @@ class UserCenter implements \cn\atd3\UserCenterAdapter
     {
         try {
             Query::begin();
-            $older=self::getPermission($id);
+            $older=self::getUserPermission($id);
             if ($older===false) {
                 $older=[];
             }
-            $permissions=array_merge($older, $permissions);
+            $diff=array_diff($older, $permissions);
+            $permissions=array_merge($diff, $permissions);
             if ($fetch=Query::where('user_group', 'id', ['user'=>$id])->fetch()) {
                 Query::update('user_group', ['auths'=>json_encode($permissions)], ['id'=>$fetch['id']]);
             } else {
-                Query::insert('user_group', ['auths'=>json_encode($permissions), 'user'=>$id, 'name'=>'User:'.self::id2name($id)]);
+                Query::insert('user_group', ['auths'=>json_encode($permissions), 'user'=>$id, 'name'=>'User:'.$id]);
             }
             Query::commit();
         } catch (\Exception $e) {
@@ -175,7 +185,7 @@ class UserCenter implements \cn\atd3\UserCenterAdapter
     {
         try {
             Query::begin();
-            $older=self::getPermission($id);
+            $older=self::getGroupPermission($id);
             if ($older===false) {
                 $older=[];
             }
@@ -210,8 +220,49 @@ class UserCenter implements \cn\atd3\UserCenterAdapter
     }
     public static function getGroupByID(array $ids):array
     {
+        return ($fetch=Query::select('user_group', ['id', 'name', 'auths'], ['id'=>$ids])->fetchAll())?$fetch:[];
     }
     public static function getGroup(int $page, int $count):array
     {
+        return ($fetch=Query::select('user_group', ['id', 'name', 'auths'], ['user'=>''])->fetchAll())?$fetch:[];
+    }
+
+
+    public static function addClient(string  $name, string $description,array $auths=[], int $beat=60, int $alive=3600, int $state=1)
+    {
+        $token=md5(microtime(true));
+        $id=Query::insert('user_client', ['name'=>$name, 'description'=>$description, 'auths'=>json_encode($auths),'time'=>time(), 'beat'=>$beat, 'alive'=>$alive, 'token'=>$token, 'state'=>$state]);
+        return ['id'=>$id,'token'=>$token];
+    }
+
+    public static function setClientState(int $id, int $state)
+    {
+        return Query::update('user_client', ['state'=>$state], ['id'=>$id]);
+    }
+
+    public static function getClientById(int $id)
+    {
+        return ($get=Query::where('user_client', '*', ['id'=>$id])->fetch())?$get:false;
+    }
+
+    public static function listClient(int $state=null, int $page=1, int $per_page=10)
+    {
+        if (is_null($state)) {
+            return Query::where('user_client')->fetchAll();
+        }
+        return Query::where('user_client', '*', ['state'=>$state], [$page, $per_page])->fetchAll();
+    }
+
+    public static function checkClient(int $id, string $token)
+    {
+        return Query::where('user_client', ['id', 'alive', 'beat'], ['id'=>$id, 'token'=>$token, 'state'=>self::ACTIVE])->fetch();
+    }
+
+    
+    // 生成令牌
+    protected static function generate(int $user, string $tokenname)
+    {
+        static $mis='5246-687261-5852-6C';
+        return md5('DXCore-'.$user.'-'.microtime(true).'-'.$mis.'-'.$tokenname);
     }
 }
