@@ -7,7 +7,7 @@ use suda\core\Query;
 // 用户中心适配器：
 // 用于适配其他用户中心的操作（exp:dz）
 
-class UserCenter implements \cn\atd3\UserCenterAdapter
+class UserCenter
 {
     const REG_EMAIL='/^([a-zA-Z0-9_\.\-\+])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/';
     const REG_NAME='/^[\w\x{4e00}-\x{9aff}]{4,13}$/u';
@@ -17,6 +17,7 @@ class UserCenter implements \cn\atd3\UserCenterAdapter
     //   用户基本操作
     //-------------------
     // 数据检验
+
     public static function checkNameExist(string $name):bool
     {
         return Query::where('user', 'id', 'LOWER(name) = LOWER(:name)', ['name'=>$name])->fetch()?true:false;
@@ -26,15 +27,19 @@ class UserCenter implements \cn\atd3\UserCenterAdapter
     {
         return Query::where('user', 'id', 'LOWER(email) = LOWER(:email)', ['email'=>$email])->fetch()?true:false;
     }
-    // 数据效验
+    // 数据格式效验
     public static function checkNameFormat(string $name):bool
     {
         return preg_match(REG_NAME, $name);
     }
+
+
     public static function checkEmailFormat(string $email):bool
     {
         return preg_match(REG_EMAIL, $email);
     }
+
+    // 验证密码
     public static function checkPassword(string $name, string $password):bool
     {
         if ($fetch=Query::where('user', ['password'], ['name'=>$name])->fetch()) {
@@ -44,10 +49,12 @@ class UserCenter implements \cn\atd3\UserCenterAdapter
         }
         return false;
     }
+
     public static function checkEmailavailable(int $uid):bool
     {
         return Query::where('user', 'id', ['id'=>$uid, 'available'=>true])->fetch()?true:false;
     }
+    
     public static function setEmailAvailable(array $uid, bool $available=true):bool
     {
         return Query::updata('user', ['available'=>$available], ['id'=>$uid])->fetch()?true:false;
@@ -228,10 +235,10 @@ class UserCenter implements \cn\atd3\UserCenterAdapter
     }
 
 
-    public static function addClient(string  $name, string $description,array $auths=[], int $beat=60, int $alive=3600, int $state=1)
+    public static function addClient(string  $name, string $description, array $auths=[], int $beat=60, int $alive=3600, int $state=1)
     {
         $token=md5(microtime(true));
-        $id=Query::insert('user_client', ['name'=>$name, 'description'=>$description, 'auths'=>json_encode($auths),'time'=>time(), 'beat'=>$beat, 'alive'=>$alive, 'token'=>$token, 'state'=>$state]);
+        $id=Query::insert('user_client', ['name'=>$name, 'description'=>$description, 'auths'=>json_encode($auths), 'time'=>time(), 'beat'=>$beat, 'alive'=>$alive, 'token'=>$token, 'state'=>$state]);
         return ['id'=>$id,'token'=>$token];
     }
 
@@ -255,14 +262,66 @@ class UserCenter implements \cn\atd3\UserCenterAdapter
 
     public static function checkClient(int $id, string $token)
     {
-        return Query::where('user_client', ['id', 'alive', 'beat'], ['id'=>$id, 'token'=>$token, 'state'=>self::ACTIVE])->fetch();
+        return Query::where('user_client', ['id', 'alive', 'beat'], ['id'=>$id, 'token'=>$token, 'state'=>self::CLIENT_ACTIVE])->fetch();
     }
 
-    
+
     // 生成令牌
     protected static function generate(int $user, string $tokenname)
     {
         static $mis='5246-687261-5852-6C';
         return md5('DXCore-'.$user.'-'.microtime(true).'-'.$mis.'-'.$tokenname);
+    }
+
+
+    public static function createToken(int $user, int $client, string $client_token, string $ip, string $value=null)
+    {
+        // 客户端可用
+        if ($get=self::checkClient($client, $client_token)) {
+            // 存在同名Token则更新
+            if ($fetch=Query::where('user_token', ['id', 'value'], '`user`=:user AND `client`=:client AND `expire` > UNIX_TIMESTAMP()  AND LENGTH(`value`) '.((strlen($value)===32 || is_null($value))?'=32':'<32'), ['user'=>$user, 'client'=>$client])->fetch()) {
+                return self::refresh($fetch['id'], $client, $client_token, $fetch['value']);
+            } else { // 创建新Token
+                $verify=self::generate($user, $client);
+                if (is_null($value)) {
+                    $value=self::generate($user, $verify);
+                }
+                $time=time();
+                $token=Query::insert('user_token', ['user'=>$user, 'token'=>$verify, 'time'=>$time, 'ip'=>$ip, 'client'=>$client, 'expire'=>$time + $get['beat'], 'value'=>$value]);
+                return ['id'=>$token,'token'=>$verify,'time'=>$time,'value'=>$value];
+            }
+        }
+        return false;
+    }
+    // 刷新过期时间
+    public static function refreshToken(int $id, int $client, string $client_token, string $value, string $refresh=null)
+    {
+        if ($get=self::checkClient($client, $client_token)) {
+            $new =self::generate($id, $value);
+            if (is_null($refresh)) {
+                $refresh=self::generate($id, $new);
+            }
+            if (Query::update('user_token', 'expire = :time , token=:new_token,value=:refresh', 'id=:id AND UNIX_TIMESTAMP() < `time` + :alive AND value = :value ', ['id'=>$id, 'value'=>$value, 'new_token'=>$new, 'refresh'=>$refresh, 'time'=>time() + $get['beat'], 'alive'=>$get['alive']])) {
+                return  ['id'=>$id, 'token'=>$new, 'time'=>time() + $get['beat'] ,'value'=>$refresh];
+            }
+        }
+        return false;
+    }
+    // 验证令牌值
+    public static function verifyTokenValue(int $id, string $token, string $value)
+    {
+        return ($user=Query::where('user_token', 'user', '`id` =:id AND `expire` > UNIX_TIMESTAMP() AND LOWER(token) = LOWER(:token) AND `value` =:value', ['id'=>$id, 'token'=>$token, 'value'=>$value])->fetch())?$user['user']:false;
+    }
+
+    // 验证令牌是否过期
+    public static function tokenAvailable(int $id, string $token)
+    {
+        return Query::where('user_token', 'user', 'id =:id AND `expire` > UNIX_TIMESTAMP() AND LOWER(token) = LOWER(:token) ', ['id'=>$id, 'token'=>$token ])->fetch();
+    }
+
+    // 删除令牌
+    public static function deleteToken(int $id, string $token)
+    {
+        return Query::update('user_token', '`expire`=UNIX_TIMESTAMP()', ['id'=>$id, 'token'=>$token]);
     }
 }

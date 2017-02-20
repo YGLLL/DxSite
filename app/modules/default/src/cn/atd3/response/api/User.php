@@ -38,9 +38,9 @@ class User extends \suda\core\Response
                     'id2name'=>$uc->id2name([6,7,8,9,10]),
                     'set'=>$uc->setUserPermission(10,['create']),
                     'get'=>$uc->getUserPermission(10),
-                    'addClient'=>$uc->addClient(time(),'官方令牌'),
+                    // 'addClient'=>$uc->addClient(time(),'官方令牌'),
                     'listClient'=>$uc->listClient(),
-                    
+                    'createToken'=>$uc->createToken(1,1,'c7b04d1534f1ed7bb9241cf5fe6ea11e',$request->ip()),
                     ]
                 );
                 break;
