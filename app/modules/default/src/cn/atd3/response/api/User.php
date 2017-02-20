@@ -10,7 +10,7 @@ use suda\core\Cookie;
 // site session
 use suda\core\Session;
 
-use cn\atd3\User as UserCenter;
+use cn\atd3\UserCenter;
 
 /**
 * visit url /api/user[/{action}] as all method to run this class.
@@ -29,10 +29,15 @@ class User extends \suda\core\Response
         
         // var_dump($action,$request->get());
         $uc=new UserCenter;
-
+        //$uc->addUser(time(),'PASSWORD_BCRYPT','dxkite2@email.com'.time(),0,$request->ip())
         switch ($action) {
             case 'checkname':
-                return $this->json(['return'=>$uc->checkNameExist($request->get()->name)]);
+                return $this->json([
+                    'add'=>$uc->addUser(time(),'PASSWORD_BCRYPT','dxkite2@email.com'.time(),0,$request->ip()),
+                    'return'=>$uc->checkNameExist($request->get()->name),
+                    'id2name'=>$uc->id2name([6,7,8,9,10]),
+                    ]
+                );
                 break;
 
             default: // display json code

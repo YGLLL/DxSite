@@ -9,8 +9,6 @@ interface UserCenterAdapter
     // 数据检验
     public static function checkNameExist(string $name):bool;
     public static function checkEmailExist(string $email):bool;
-
-    // 数据效验
     public static function checkNameFormat(string $name):bool;
     public static function checkEmailFormat(string $email):bool;
     public static function checkPassword(string $name, string $password):bool;
@@ -33,8 +31,8 @@ interface UserCenterAdapter
     public static function id2email(array $ids):array;
 
     // 权限操作
-    public static function getUserPermission(array $uidarray):array;
-    public static function setUserPermission(array $uid, array $Permission):bool;
+    public static function getUserPermission(int $uid):array;
+    public static function setUserPermission(int $id, array $permissions):bool;
 
     //-------------------
     //   分组操作
@@ -48,4 +46,8 @@ interface UserCenterAdapter
     public static function gname2id(array $names):int;
     public static function getGroupByID(array $ids):array;
     public static function getGroup(int $page, int $count):array;
+
+    //------------------
+    //  客户端分配操作
+    //------------------
 }

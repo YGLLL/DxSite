@@ -1,0 +1,5 @@
+; 上传的文件
+id bigint(20) primary  auto comment="文件ID"
+hash varchar(32) key comment="MD5哈希"
+time int(11) comment="最后更新时间"
+ref  int(11) comment="引用计数"  
