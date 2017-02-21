@@ -1,1 +1,1 @@
-{"default":{"class":"cn\\atd3\\response\\Index","visit":"\/"},"user_api":{"class":"cn\\atd3\\response\\api\\User","visit":"\/api\/user[\/{action}]"},"verify_image":{"class":"cn\\atd3\\response\\Image","visit":"\/verify.png"}}
+{"default":{"class":"cn\\atd3\\response\\Index","visit":"\/"},"user_api":{"class":"cn\\atd3\\response\\api\\User","visit":"\/api\/user[\/{action}]"},"verify_image":{"class":"cn\\atd3\\response\\Image","visit":"\/verify.png"},"msg_api":{"class":"cn\\atd3\\response\\api\\Msg","visit":"\/api\/msg[\/{action}]"}}

@@ -4,10 +4,13 @@ namespace cn\atd3;
 class User
 {
     public static $uc;
-    public function __construct(string $select='default')
+    public function __construct($uc)
     {
-        $name='cn\\atd3\\adapter\\'.ucfirst($select).'Adapter';
-        self::$uc=new $name;
+        if ($uc) {
+            self::$uc=$uc;
+        } else {
+            self::$uc=new UserCenter;
+        }
     }
 
     public function checkNameExist(string $name):bool
@@ -20,7 +23,21 @@ class User
         return self::$uc->checkEmailExist($email);
     }
 
-    public static function getFaildTimes():bool{
+    public static function getFaildTimes():bool
+    {
         return Session::set('faild_times', 0);
+    }
+
+    public function getUserId()
+    {
+        if (Token::has('user')) {
+            $token=base64_decode(Token::get('user'));
+            if (preg_match('/^(\d+)[.]([a-zA-Z0-9]{32})(?:[.]([a-zA-Z0-9]{32}))?$/', $token, $match)) {
+                if ($uid= self::$uc->tokenAvailable(intval($match[1]), $match[2])) {
+                    return  intval($uid['user']);
+                }
+            }
+        }
+        return 0;
     }
 }

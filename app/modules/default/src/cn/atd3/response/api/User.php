@@ -78,6 +78,9 @@ class User extends \suda\core\Response
                     'params'=>['token'],
                     'comments'=>"心跳一次",
                 ],
+                'id'=>[
+                    'comments'=>"获取用户ID",
+                ],
             ],
         ];
         try {
@@ -104,6 +107,8 @@ class User extends \suda\core\Response
                 case 'beat':Api::check($data, ['token']);return $this->json(['return'=>self::beat($data->token)]);
                 // 设置用户
                 case 'set': Api::check($data, ['email'=>['string', ''], 'avatar'=>['string', '']]);return $this->json(['return'=>self::set($data->email(''), $data->avatar(''))]);
+                // 获取用户ID
+                case 'id':return $this->json(['return'=>(new \cn\atd3\User($this->uc))->getUserId()]);
                 // 默认输出
                 default:return $this->json($help);
             }
