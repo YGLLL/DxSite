@@ -4,6 +4,7 @@ app/data/temp
 app/data/logs
 app/data/views
 app/data/session
+app/data/backup
 application
 app-old
 debug.log

@@ -30,21 +30,21 @@ class UserCenter
     // 数据格式效验
     public static function checkNameFormat(string $name):bool
     {
-        return preg_match(REG_NAME, $name);
+        return preg_match(self::REG_NAME, $name);
     }
 
 
     public static function checkEmailFormat(string $email):bool
     {
-        return preg_match(REG_EMAIL, $email);
+        return preg_match(self::REG_EMAIL, $email);
     }
 
     // 验证密码
-    public static function checkPassword(string $name, string $password):bool
+    public static function checkPassword(string $name, string $password)
     {
-        if ($fetch=Query::where('user', ['password'], ['name'=>$name])->fetch()) {
+        if ($fetch=Query::where('user', ['password', 'id'], ['name'=>$name])->fetch()) {
             if (password_verify($password, $fetch['password'])) {
-                return true;
+                return $fetch['id'];
             }
         }
         return false;
@@ -57,23 +57,27 @@ class UserCenter
     
     public static function setEmailAvailable(array $uid, bool $available=true):bool
     {
-        return Query::updata('user', ['available'=>$available], ['id'=>$uid])->fetch()?true:false;
+        return Query::update('user', ['available'=>$available], ['id'=>$uid]);
     }
 
     // 基本操作
-    public static function addUser(string $name, string $password, string  $email, int $group, string $ip):int
+    public static function addUser(string $name, string $password, string  $email, int $group, string $ip, string $avatar=null):int
     {
-        return Query::insert('user', [
+        $insert= [
             'name'=>$name,
             'password'=> password_hash($password, PASSWORD_DEFAULT),
             'group'=>$group,
             'available'=>false,
             'email'=>$email,
             'ip'=>$ip,
-            ]);
+            ];
+        if ($avatar) {
+            $insert['avatar']=$avatar;
+        }
+        return Query::insert('user', $insert);
     }
 
-    public static function editUser(int $uid, string $name, string $password, string $email, int $group):bool
+    public static function editUser(int $uid, string $name, string $password, string $email,int $available, int $group, string $avatar):bool
     {
         $sets=[];
         if ($name) {
@@ -88,7 +92,13 @@ class UserCenter
         if ($group) {
             $sets['group']=$group;
         }
-        return Query::updata('user', $sets, ['id'=>$uid])->fetch()?true:false;
+        if ($avatar) {
+            $sets['avatar']=$avatar;
+        }
+        if ($available){
+            $sets['available']=$available;
+        }
+        return Query::update('user', $sets, ['id'=>$uid]);
     }
 
     public static function deleteUser(array $uidarray):bool
@@ -98,49 +108,92 @@ class UserCenter
 
     public static function getUser(int $page, int $counts):array
     {
-        return ($fetch=Query::where('user', ['id', 'name', 'email', 'available', 'ip'], '1', [], [$page, $count])->fetchAll())?$fetch:[];
-        ;
+        return ($fetch=Query::where('user', ['id', 'name', 'email', 'available', 'avatar', 'ip'], '1', [], [$page, $count])->fetchAll())?$fetch:[];
     }
 
     public static function getUserById(array $uid):array
     {
-        return ($fetch=Query::where('user', ['id', 'name', 'email', 'available', 'ip'], ['id'=>$uidarray])->fetchAll())?$fetch:[];
-        ;
+        if ($fetch=Query::where('user', ['id', 'name', 'email', 'available', 'avatar', 'ip'], ['id'=>$uid])->fetchAll()) {
+            $data=[];
+            foreach ($fetch as $item) {
+                $data[$item['id']]=$item;
+            }
+            return $data;
+        }
+        return  false;
     }
 
     public static function getUserByName(array $names):array
     {
-        return ($fetch=Query::where('user', ['id', 'name', 'email', 'available', 'ip'], ['name'=>$names])->fetchAll())?$fetch:[];
-        ;
+        if ($fetch=Query::where('user', ['id', 'name', 'email', 'available', 'avatar', 'ip'], ['name'=>$names])->fetchAll()) {
+            $data=[];
+            foreach ($fetch as $item) {
+                $data[$item['name']]=$item;
+            }
+            return $data;
+        }
+        return  false;
     }
 
     public static function getUserByEmail(array $emails):array
     {
-        return ($fetch=Query::where('user', ['id', 'name', 'email', 'available', 'ip'], ['email'=>$emails])->fetchAll())?$fetch:[];
-        ;
+        if ($fetch=Query::where('user', ['id', 'name', 'email', 'available', 'avatar', 'ip'], ['email'=>$emails])->fetchAll()) {
+            $data=[];
+            foreach ($fetch as $item) {
+                $data[$item['email']]=$item;
+            }
+            return $data;
+        }
+        return  false;
     }
 
     // 数据转换
-    public static function id2name(array $ids):array
+    public static function id2name(array $ids)
     {
-        return ($fetch=Query::where('user', ['id', 'name'], ['id'=>$ids])->fetchAll())?$fetch:[];
-        ;
+        if ($fetch=Query::where('user', ['id', 'name'], ['id'=>$ids])->fetchAll()) {
+            $data=[];
+            foreach ($fetch as $item) {
+                $data[$item['id']]=$item['name'];
+            }
+            return $data;
+        }
+        return  false;
     }
+
     public static function name2id(array $names):array
     {
-        return ($fetch=Query::where('user', ['id', 'name'], ['names'=>$names])->fetchAll())?$fetch:[];
-        ;
+        if ($fetch=Query::where('user', ['id', 'name'],  ['names'=>$names])->fetchAll()) {
+            $data=[];
+            foreach ($fetch as $item) {
+                $data[$item['name']]=$item['id'];
+            }
+            return $data;
+        }
+        return  false;
     }
 
     public static function email2id(array $email):array
     {
-        return ($fetch=Query::where('user', [ 'id', 'email'], ['email'=>$email])->fetchAll())?$fetch:[];
-        ;
+        if ($fetch=Query::where('user', [ 'id', 'email'], ['email'=>$email])->fetchAll()) {
+            $data=[];
+            foreach ($fetch as $item) {
+                $data[$item['email']]=$item['id'];
+            }
+            return $data;
+        }
+        return  false;
     }
+
     public static function id2email(array $ids):array
     {
-        return ($fetch=Query::where('user', ['id', 'email'], ['id'=>$ids])->fetchAll())?$fetch:[];
-        ;
+        if ($fetch=Query::where('user', ['id', 'email'], ['id'=>$ids])->fetchAll()) {
+            $data=[];
+            foreach ($fetch as $item) {
+                $data[$item['id']]=$item['email'];
+            }
+            return $data;
+        }
+        return  false;
     }
 
     // 权限操作
@@ -280,7 +333,7 @@ class UserCenter
         if ($get=self::checkClient($client, $client_token)) {
             // 存在同名Token则更新
             if ($fetch=Query::where('user_token', ['id', 'value'], '`user`=:user AND `client`=:client AND `expire` > UNIX_TIMESTAMP()  AND LENGTH(`value`) '.((strlen($value)===32 || is_null($value))?'=32':'<32'), ['user'=>$user, 'client'=>$client])->fetch()) {
-                return self::refresh($fetch['id'], $client, $client_token, $fetch['value']);
+                return self::refreshToken($fetch['id'], $client, $client_token, $fetch['value']);
             } else { // 创建新Token
                 $verify=self::generate($user, $client);
                 if (is_null($value)) {

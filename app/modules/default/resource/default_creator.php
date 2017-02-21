@@ -1,4 +1,4 @@
-<?php  /* create:2017-02-20 20:11:00*/
+<?php  /* create:2017-02-21 10:49:43*/
 
     try {
     /** Open Transaction Avoid Error **/
@@ -156,6 +156,7 @@
 	`password` varchar(60) NOT NULL   COMMENT \'密码HASH\',
 	`group` bigint(20) NOT NULL DEFAULT \'0\'  COMMENT \'分组ID\',
 	`available` int(1) NOT NULL DEFAULT \'0\'  COMMENT \'邮箱验证\',
+	`avatar` varchar(255) NOT NULL   COMMENT \'头像URL\',
 	`ip` varchar(32) NOT NULL   COMMENT \'注册IP\',
 	PRIMARY KEY (`id`),
 	UNIQUE KEY `name` (`name`),

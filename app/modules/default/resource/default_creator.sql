@@ -1,4 +1,4 @@
--- create:2017-02-20 20:11:00
+-- create:2017-02-21 10:49:43
 
 CREATE TABLE `notification_data` (
 	`id` bigint(20) NOT NULL  AUTO_INCREMENT COMMENT '通知ID',
@@ -101,6 +101,7 @@ CREATE TABLE `user` (
 	`password` varchar(60) NOT NULL   COMMENT '密码HASH',
 	`group` bigint(20) NOT NULL DEFAULT '0'  COMMENT '分组ID',
 	`available` int(1) NOT NULL DEFAULT '0'  COMMENT '邮箱验证',
+	`avatar` varchar(255) NOT NULL   COMMENT '头像URL',
 	`ip` varchar(32) NOT NULL   COMMENT '注册IP',
 	PRIMARY KEY (`id`),
 	UNIQUE KEY `name` (`name`),

@@ -20,5 +20,7 @@ class User
         return self::$uc->checkEmailExist($email);
     }
 
-    
+    public static function getFaildTimes():bool{
+        return Session::set('faild_times', 0);
+    }
 }
