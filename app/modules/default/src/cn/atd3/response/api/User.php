@@ -46,7 +46,7 @@ class User extends \suda\core\Response
         // params if had
         $action=$request->get()->action;
         $help=[
-            'url'=>_I('user_api', ['action'=>'usage_action']),
+            'url'=>_I('user_api', ['action'=>'usage_action', 'token'=>'token_str', 'client'=>'client_id']),
             'usage'=>[
                 'needcode'=>[
                     'comments'=>'查询是否需要验证码。'
@@ -141,7 +141,6 @@ class User extends \suda\core\Response
         elseif (Session::get('need_code', false)&& \cn\atd3\VerifyImage::checkCode($code)) {
             $id=$this->uc->addUser($name, $passwd, $email, 0, $this->request->ip());
             $get=$this->uc->createToken($id, $this->client, $this->token, $this->request->ip(), 'Code');
-            Token::set('user', base64_encode($get['id'].'.'.$get['token']));
             Token::set('user', $token= base64_encode($get['id'].'.'.$get['token']));
             return ['return'=>['uid'=>$id,'token'=>$token]];
         } else {
@@ -234,7 +233,9 @@ class User extends \suda\core\Response
         }
         if ($user=self::getUserInfo()) {
             $user=array_shift($user);
-            return $this->uc->editUser($user['id'], '', '',  $email, 0, 0, '', $avatar);
+            $get=$this->uc->createToken($user['id'], $this->client, $this->token, $this->request->ip(), 'Code');
+            Token::set('user', $token= base64_encode($get['id'].'.'.$get['token']));
+            return ['edit'=>$this->uc->editUser($user['id'], '', '',  $email, 0, 0, '', $avatar),'token'=>$token];
         }
         return false;
     }
