@@ -88,7 +88,12 @@ class User extends \suda\core\Response
             $data=$request->isJson()?new Value($request->json()):($request->isPost()?$request->post():$request->get());
             switch ($action) {
                 // 需要验证码
-                case 'needcode': return $this->json(['return'=>Session::get('need_code', false)]);
+                case 'needcode': 
+                    $value['need']=Session::get('need_code', false);
+                    if ($value['need']){
+                        $value['code']=_I('verify_image',['t'=>time()]);
+                    }
+                return $this->json(['return'=>$value]);
                 // 验证姓名
                 case 'checkname': Api::check($data, ['name']);return $this->json(['return'=>$this->uc->checkNameExist($data->name)]);
                 // 验证邮箱

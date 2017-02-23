@@ -76,6 +76,7 @@ class Msg extends \suda\core\Response
                     }
                     return $this->json(['return'=>$this->mc->inbox($this->uid, $data->type(MsgCenter::TYPE_MESSAGE), $data->page(1), $data->count(10))]);
                 case 'send':
+                   // todo ：发送信息的类型修改
                     if (!$this->uid) {
                         throw new ApiException('NoUserException', 'please Login');
                     }
