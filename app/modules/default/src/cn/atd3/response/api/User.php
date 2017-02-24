@@ -90,8 +90,8 @@ class User extends \suda\core\Response
                 // 需要验证码
                 case 'needcode': 
                     $value['need']=Session::get('need_code', false);
-                    if ($value['need']){
-                        $value['code']=_I('verify_image',['t'=>time()]);
+                    if ($value['need']) {
+                        $value['code']=_I('verify_image',['t'=>time(),'client'=>$this->client,'token'=>$this->token]);
                     }
                 return $this->json(['return'=>$value]);
                 // 验证姓名
